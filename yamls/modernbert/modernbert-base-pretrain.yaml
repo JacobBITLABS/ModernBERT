@@ -1,4 +1,4 @@
-data_local: data_folder
+data_local: /mnt/odinstorage/users/jnn/dataset/nlp/c4_en_mds/ # c4_en_mds, dfm_mds_test
 data_remote: # If blank, files must be present in data_local
 
 max_seq_len: 1024
@@ -7,7 +7,7 @@ mlm_probability: 0.3 # FlexBERT should use 30% masking for optimal performance
 count_padding_tokens: false
 
 # Run Name
-run_name: modernbert-base-pretrain
+run_name: TEST-modernbert-base-pretrain
 
 # Model
 model:
@@ -75,29 +75,29 @@ train_loader:
   num_workers: 6
   sequence_packing: true
   batch_size_warmup_min_size: ${device_train_microbatch_size}
-  batch_size_warmup_tokens: 50_000_000_000tok
+  batch_size_warmup_tokens: 850_000_000tok # 50_000_000_000tok
 
 
-eval_loader:
-  name: text
-  dataset:
-    local: ${data_local}
-    remote: ${data_remote}
-    split: validation
-    tokenizer_name: ${tokenizer_name}
-    max_seq_len: ${max_seq_len}
-    shuffle: false
-    mlm_probability: 0.15 # We always evaluate at 15% masking for consistent comparison
-    streaming: false
-  drop_last: false
-  num_workers: 3
-  sequence_packing: false
+# eval_loader:
+#   name: text
+#   dataset:
+#     local: ${data_local}
+#     remote: ${data_remote}
+#     split: validation
+#     tokenizer_name: ${tokenizer_name}
+#     max_seq_len: ${max_seq_len}
+#     shuffle: false
+#     mlm_probability: 0.15 # We always evaluate at 15% masking for consistent comparison
+#     streaming: false
+#   drop_last: false
+#   num_workers: 3
+#   sequence_packing: false
 
 
 # Optimization
 scheduler:
   name: warmup_stable_decay
-  t_warmup: 3_000_000_000tok
+  t_warmup: 9_401_000tok # 3_000_000_000tok # 17% of original we keep the same ratio
   alpha_f: 0.00 # Linearly decay to 0.02x the full LR by the end of the training duration
   t_decay: 0tok
 
@@ -112,21 +112,21 @@ optimizer:
   filter_bias_norm_wd: true # If True, doesn't apply weight decay to norm layers and biases
   log_grad_norm: true
 
-max_duration: 1_719_000_000_000tok
+max_duration: 5_530_000_000tok # 1_719_000_000_000tok
 eval_interval: 4000ba
-global_train_batch_size: 4608
-global_eval_batch_size: 1024
+global_train_batch_size: 512
+global_eval_batch_size: 512
 
 # System
 seed: 17
 device_eval_batch_size: 128
-device_train_microbatch_size: 96
+device_train_microbatch_size: 32
 precision: amp_bf16
 
 # Logging
-progress_bar: false
+progress_bar: true
 log_to_console: true
-console_log_interval: 100ba
+console_log_interval: 10ba
 
 callbacks:
   speed_monitor:
@@ -139,10 +139,10 @@ callbacks:
     log_interval: 10
 
 # W&B logging
-# loggers:
-#   wandb:
-#     project:
-#     entity:
+loggers:
+  wandb:
+    project:
+    entity:
 
 # Checkpoint to local filesystem or remote object store
 save_interval: 4000ba
